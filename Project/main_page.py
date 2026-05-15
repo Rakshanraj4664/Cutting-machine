@@ -1,6 +1,7 @@
 # main_page.py
 import sys
 import json
+import os
 from datetime import datetime
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, 
@@ -228,12 +229,14 @@ class MainWindow(QWidget):
     
     def init_plc(self):
         """Initialize PLC communication"""
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        config_path = os.path.join(current_dir, 'plc_config.json')
         try:
             with open('plc_config.json', 'r') as f:
                 config = json.load(f)
         except FileNotFoundError:
             config = {
-                "plc_ip": "192.168.1.1", 
+                "plc_ip": "192.168.1.5", 
                 "port": 502, 
                 "polling_interval_ms": 200,
                 "auto_connect": True

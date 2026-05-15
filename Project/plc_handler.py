@@ -17,7 +17,7 @@ class PLCHandler(QObject):
     connection_status = pyqtSignal(bool)
     connection_error = pyqtSignal(str)
     
-    def __init__(self, ip="192.168.1.1", port=502, pulses_per_200mm=2000):
+    def __init__(self, ip="192.168.1.5", port=502, pulses_per_200mm=2000):
         super().__init__()
         self.ip = ip
         self.port = port
