@@ -479,3 +479,75 @@ class HomePage(QWidget):
 
         inner_layout.addLayout(icon_layout)
         main_layout.addWidget(black_border_box, alignment=Qt.AlignmentFlag.AlignLeft)
+        
+    def connect_to_plc(self, plc_handler):
+        """Connect all UI controls to PLC handler"""
+        self.plc = plc_handler
+        
+        # Connect speed scrollbars to PLC
+        if hasattr(self, 'feeding_scrollbar'):
+            self.feeding_scrollbar.valueChanged.connect(
+                lambda v: self.plc.set_speed('feeding', v) if self.plc and self.plc.connected else None
+            )
+        if hasattr(self, 'unloading_scrollbar'):
+            self.unloading_scrollbar.valueChanged.connect(
+                lambda v: self.plc.set_speed('unloading', v) if self.plc and self.plc.connected else None
+            )
+        if hasattr(self, 'upstroke_scrollbar'):
+            self.upstroke_scrollbar.valueChanged.connect(
+                lambda v: self.plc.set_speed('upstroke', v) if self.plc and self.plc.connected else None
+            )
+        
+        # Connect numeric inputs validation
+        numeric_inputs = ['layers_input', 's_input', 'l_input', 'ss_input', 'fabric_input', 'conveyor_input']
+        for inp_name in numeric_inputs:
+            if hasattr(self, inp_name):
+                getattr(self, inp_name).textChanged.connect(self.validate_numeric_input)
+    
+    def validate_numeric_input(self, text):
+        """Validate numeric input fields"""
+        sender = self.sender()
+        if sender and text:
+            try:
+                float(text)
+                sender.setStyleSheet(HOME_INPUT_STYLE)
+            except ValueError:
+                sender.setStyleSheet("background-color: #FFCCCC; border: 1px solid red;")
+        elif sender:
+            sender.setStyleSheet(HOME_INPUT_STYLE)
+    
+    def get_all_parameters(self):
+        """Get all home page parameters as dictionary for PLC"""
+        return {
+            'batch_id': self.batch_input.text(),
+            'target_prod': self.target_input.text(),
+            'file': self.file_input.text(),
+            'layers': self.layers_input.text(),
+            's_mm': self.s_input.text(),
+            'l_mm': self.l_input.text(),
+            'ss_mm': self.ss_input.text(),
+            'fabric_thickness_mm': self.fabric_input.text(),
+            'conveyor_offset_mm': self.conveyor_input.text(),
+            'feeding_speed': self.feeding_scrollbar.value() if hasattr(self, 'feeding_scrollbar') else 5,
+            'unloading_speed': self.unloading_scrollbar.value() if hasattr(self, 'unloading_scrollbar') else 5,
+            'upstroke_speed': self.upstroke_scrollbar.value() if hasattr(self, 'upstroke_scrollbar') else 5,
+            'selective_mode': self.get_selected_mode(),
+            'l1_enabled': self.l1_checkbox.isChecked() if hasattr(self, 'l1_checkbox') else False,
+            'l1_value': self.l1_input.text() if hasattr(self, 'l1_input') else '',
+            'l2_enabled': self.l2_checkbox.isChecked() if hasattr(self, 'l2_checkbox') else False,
+            'l2_value': self.l2_input.text() if hasattr(self, 'l2_input') else '',
+            'l3_enabled': self.l3_checkbox.isChecked() if hasattr(self, 'l3_checkbox') else False,
+            'l3_value': self.l3_input.text() if hasattr(self, 'l3_input') else '',
+            'l4_enabled': self.l4_checkbox.isChecked() if hasattr(self, 'l4_checkbox') else False,
+            'l4_value': self.l4_input.text() if hasattr(self, 'l4_input') else '',
+        }
+    
+    def get_selected_mode(self):
+        """Get selected selective movement mode"""
+        if hasattr(self, 'standard_radio') and self.standard_radio.isChecked():
+            return 'Standard'
+        elif hasattr(self, 'bundle_shift_radio') and self.bundle_shift_radio.isChecked():
+            return 'Bundle Shift'
+        elif hasattr(self, 'multi_step_radio') and self.multi_step_radio.isChecked():
+            return 'Multi Step'
+        return 'Standard'

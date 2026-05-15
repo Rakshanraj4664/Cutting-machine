@@ -4,6 +4,8 @@ from PyQt6.QtWidgets import (
     QPushButton, QSpinBox, QGroupBox
 )
 from styles import *
+from pathlib import Path
+import json
 
 
 class TFManagementPage(QWidget):
@@ -253,3 +255,131 @@ class TFManagementPage(QWidget):
         box_layout.addStretch()
         
         return box
+    
+    def connect_to_plc(self, plc_handler):
+        """Connect all UI controls to PLC handler"""
+        self.plc = plc_handler
+
+        # Store all input references for easy access
+        self.inputs = {}
+
+        # Find and store all line edits and spinboxes
+        for child in self.findChildren(QLineEdit):
+            if child.objectName():
+                self.inputs[child.objectName()] = child
+            else:
+                # Set object names for unnamed inputs
+                parent = child.parent()
+                if parent and hasattr(parent, 'layout'):
+                    child.setObjectName(f"input_{id(child)}")
+                    self.inputs[child.objectName()] = child
+
+        for child in self.findChildren(QSpinBox):
+            if child.objectName():
+                self.inputs[child.objectName()] = child
+            else:
+                child.setObjectName(f"spin_{id(child)}")
+                self.inputs[child.objectName()] = child
+
+        # Load saved values from config
+        self.load_tf_config()
+
+    def load_tf_config(self):
+        """Load TF configuration from file"""
+        config_path = Path(__file__).parent.parent / "tf_config.json"
+        if config_path.exists():
+            try:
+                with open(config_path, 'r') as f:
+                    config = json.load(f)
+
+                # Restore values to inputs
+                for key, value in config.items():
+                    for input_name, input_widget in self.inputs.items():
+                        if key.lower() in input_name.lower() or input_name.lower().endswith(f"_{key.lower()}"):
+                            if isinstance(input_widget, QLineEdit):
+                                input_widget.setText(str(value))
+                            elif isinstance(input_widget, QSpinBox):
+                                input_widget.setValue(int(value))
+            except Exception as e:
+                print(f"Error loading TF config: {e}")
+
+    def save_tf_config(self):
+        """Save TF configuration to file"""
+        config = {}
+
+        # Collect all values
+        for name, widget in self.inputs.items():
+            if isinstance(widget, QLineEdit):
+                config[name] = widget.text()
+            elif isinstance(widget, QSpinBox):
+                config[name] = widget.value()
+
+        config_path = Path(__file__).parent.parent / "tf_config.json"
+        try:
+            with open(config_path, 'w') as f:
+                json.dump(config, f, indent=2)
+            return True
+        except Exception as e:
+            print(f"Error saving TF config: {e}")
+            return False
+
+    def send_tf_to_plc(self):
+        """Send all TF values to PLC"""
+        if not hasattr(self, 'plc') or not self.plc.connected:
+            return False
+
+        # Map UI elements to PLC addresses (adjust addresses as needed)
+        tf_addresses = {
+            'boost_time': 0x4200,
+            'eclutch_time': 0x4201,
+            'tf1_boost': 0x4210,
+            'tf1_normal': 0x4211,
+            'tf2_boost': 0x4212,
+            'tf2_normal': 0x4213,
+            'tf3_boost': 0x4214,
+            'tf3_normal': 0x4215,
+            'tf4_boost': 0x4216,
+            'tf4_normal': 0x4217,
+            'adj1': 0x4220,
+            'adj2': 0x4221,
+            'adj3': 0x4222,
+            'adj4': 0x4223,
+            'input_belt': 0x4224,
+            'boost_roller': 0x4225,
+        }
+
+        # Find and send each value
+        for child in self.findChildren(QLineEdit):
+            for tf_key, address in tf_addresses.items():
+                if tf_key.lower() in child.objectName().lower():
+                    try:
+                        value = int(float(child.text()) if child.text() else 0)
+                        self.plc.write_register(address, value)
+                    except ValueError:
+                        pass
+                    
+        for child in self.findChildren(QSpinBox):
+            for tf_key, address in tf_addresses.items():
+                if tf_key.lower() in child.objectName().lower():
+                    self.plc.write_register(address, child.value())
+
+        return True
+
+    def on_link_clicked(self):
+        """Handle LINK button click - sync adjacent values"""
+        # Find all TF blocks and sync values
+        tf_blocks = []
+        for child in self.findChildren(QFrame):
+            if child.styleSheet() == TFMANAGEMENT_TF_CONTAINER_STYLE:
+                tf_blocks.append(child)
+
+        # Sync TF 1 with TF 2, TF 3 with TF 4 (example logic)
+        for i in range(0, len(tf_blocks) - 1, 2):
+            block1_inputs = tf_blocks[i].findChildren(QLineEdit)
+            block2_inputs = tf_blocks[i + 1].findChildren(QLineEdit)
+
+            for inp1, inp2 in zip(block1_inputs, block2_inputs):
+                inp2.setText(inp1.text())
+
+        self.save_tf_config()
+        self.send_tf_to_plc()

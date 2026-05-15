@@ -66,7 +66,7 @@ class MainWindow(QWidget):
         self.stack = QStackedWidget()
         self.pages = {
             "Home": HomePage(),
-            "Production": ProductionPage(),
+            "Production": ProductionPage(self),
             "TF Management": TFManagementPage(),
             "Production Data": ProductionDataPage()
         }
@@ -257,6 +257,8 @@ class MainWindow(QWidget):
             if self.plc.connect():
                 self.plc.start_polling(config.get('polling_interval_ms', 200))
                 self.update_status_message("PLC Connected Successfully", "success")
+                if hasattr(self, 'pages') and 'Home' in self.pages:
+                    self.pages["Home"].connect_to_plc(self.plc)
             else:
                 self.update_status_message("PLC Connection Failed - Check IP and network", "error")
     
