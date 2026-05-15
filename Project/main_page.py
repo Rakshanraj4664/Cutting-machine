@@ -72,6 +72,9 @@ class MainWindow(QWidget):
             "TF Management": TFManagementPage(),
             "Production Data": ProductionDataPage()
         }
+        
+        self.pages["Production Data"].set_production_page_reference(self.pages["Production"])
+
 
         for page in self.pages.values():
             self.stack.addWidget(page)
@@ -134,7 +137,7 @@ class MainWindow(QWidget):
             self.update_status_message("All controls enabled", "success")
 
         self.sidebar_buttons["Restore"].clicked.connect(enable_all_buttons)
-        self.sidebar_buttons["Rest"].clicked.connect(enable_all_buttons)
+        self.sidebar_buttons["Reset"].clicked.connect(enable_all_buttons)
         self.sidebar_buttons["Start"].clicked.connect(lambda: self.send_plc_command("START"))
         self.sidebar_buttons["Stop"].clicked.connect(lambda: self.send_plc_command("STOP"))
         self.sidebar_buttons["Production"].clicked.connect(lambda: self.activate_top_button("Production"))
@@ -233,11 +236,11 @@ class MainWindow(QWidget):
         """Initialize PLC communication"""
         current_dir = os.path.dirname(os.path.abspath(__file__))
         config_path = os.path.join(current_dir, 'plc_config.json')
-    
+
         try:
             with open(config_path, 'r') as f:
                 config = json.load(f)
-    
+
         except FileNotFoundError:
             config = {
                 "plc_ip": "192.168.1.5",
@@ -245,7 +248,7 @@ class MainWindow(QWidget):
                 "polling_interval_ms": 200,
                 "auto_connect": True
             }
-    
+
             with open(config_path, 'w') as f:
                 json.dump(config, f, indent=4)
         
