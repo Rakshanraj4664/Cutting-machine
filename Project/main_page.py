@@ -3,6 +3,7 @@ import sys
 import json
 import os
 from datetime import datetime
+from turtle import delay
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, 
     QSizePolicy, QStackedWidget, QStatusBar, QLabel, QFrame
@@ -48,11 +49,12 @@ class MainWindow(QWidget):
         # Setup timers
         self.setup_timers()
         
+        # Initialize PLC
+        self.init_plc()
+        
         # Activate default page
         self.activate_top_button("Home")
         
-        # Initialize PLC
-        self.init_plc()
     
     def setup_top_bar(self, main_layout):
         """Setup top navigation bar"""
@@ -120,7 +122,7 @@ class MainWindow(QWidget):
 
         # Set initial button states
         for name, btn in self.sidebar_buttons.items():
-            if name not in ["Restore", "Rest"]:
+            if name not in ["Restore", "Reset"]:
                 btn.setDisabled(True)
                 btn.setStyleSheet(SIDEBAR_BUTTON_STYLE.format(bg="#A0A0A0"))
 
@@ -231,17 +233,20 @@ class MainWindow(QWidget):
         """Initialize PLC communication"""
         current_dir = os.path.dirname(os.path.abspath(__file__))
         config_path = os.path.join(current_dir, 'plc_config.json')
+    
         try:
-            with open('plc_config.json', 'r') as f:
+            with open(config_path, 'r') as f:
                 config = json.load(f)
+    
         except FileNotFoundError:
             config = {
-                "plc_ip": "192.168.1.5", 
-                "port": 502, 
+                "plc_ip": "192.168.1.5",
+                "port": 502,
                 "polling_interval_ms": 200,
                 "auto_connect": True
             }
-            with open('plc_config.json', 'w') as f:
+    
+            with open(config_path, 'w') as f:
                 json.dump(config, f, indent=4)
         
         if self.plc_ip_label:
@@ -337,7 +342,7 @@ class MainWindow(QWidget):
         # Clear message after delay
         delay = STATUS_CLEAR_DELAYS.get(msg_type, 3000)
         self.status_clear_timer.stop()
-        self.status_clear_timer.singleShot(delay, lambda: self.reset_status_message())
+        QTimer.singleShot(delay, self.reset_status_message)
     
     def reset_status_message(self):
         """Reset status message to default"""
@@ -355,10 +360,16 @@ class MainWindow(QWidget):
         """Update system uptime display"""
         if self.uptime_label:
             elapsed = datetime.now() - self.start_time
-            hours = elapsed.seconds // 3600
-            minutes = (elapsed.seconds % 3600) // 60
-            seconds = elapsed.seconds % 60
-            self.uptime_label.setText(f"Uptime: {hours:02d}:{minutes:02d}:{seconds:02d}")
+    
+            total_seconds = int(elapsed.total_seconds())
+    
+            hours = total_seconds // 3600
+            minutes = (total_seconds % 3600) // 60
+            seconds = total_seconds % 60
+    
+            self.uptime_label.setText(
+                f"Uptime: {hours:02d}:{minutes:02d}:{seconds:02d}"
+            )
     
     def activate_top_button(self, name):
         """Activate top navigation button"""
@@ -368,7 +379,8 @@ class MainWindow(QWidget):
                 self.update_status_message(f"Switched to {name} page", "info")
             else:
                 btn.setStyleSheet(TOPBAR_BUTTON_STYLE)
-        self.stack.setCurrentWidget(self.pages[name])
+        if name in self.pages:
+            self.stack.setCurrentWidget(self.pages[name])
     
     def closeEvent(self, event):
         """Handle application close event"""
