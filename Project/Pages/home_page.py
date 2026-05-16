@@ -327,11 +327,11 @@ class HomePage(QWidget):
         
         # Length row
         right_layout.addWidget(length_label, 1, 0, Qt.AlignmentFlag.AlignLeft)
-        
+
         # Align textboxes with columns below
         right_layout.addWidget(self.text_box1, 1, 2, Qt.AlignmentFlag.AlignLeft)
         right_layout.addWidget(self.text_box2, 1, 3, Qt.AlignmentFlag.AlignLeft)
-        
+
         # Clear button
         right_layout.addWidget(clear_button, 1, 4, Qt.AlignmentFlag.AlignRight)
         
@@ -443,7 +443,8 @@ class HomePage(QWidget):
         # 5th Row: Black border box with reset button and icons
         # -------------------------
         black_border_box = QFrame()
-        black_border_box.setFixedWidth(600)
+        black_border_box.setFixedWidth(500)
+        black_border_box.setFixedHeight(70)
         black_border_box.setStyleSheet(BLACK_BORDER_BOX_STYLE)
 
         inner_layout = QHBoxLayout(black_border_box)
