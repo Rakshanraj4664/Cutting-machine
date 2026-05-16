@@ -86,7 +86,7 @@ class TFManagementPage(QWidget):
         # TF Blocks Row + Buttons
         tf_main_row = QHBoxLayout()
         tf_blocks_layout = QHBoxLayout()
-        tf_blocks_layout.setSpacing(15)
+        tf_blocks_layout.setSpacing(8)
 
         for name in ["TF 4", "TF 3", "TF 2", "TF 1"]:
             tf_blocks_layout.addWidget(self.create_tf_block(name))
@@ -96,11 +96,11 @@ class TFManagementPage(QWidget):
         buttons_layout.addStretch()
         buttons_layout.setContentsMargins(0, 0, 0, 0)
         link_button = QPushButton("LINK")
-        link_button.setFixedSize(100, 30)
+        link_button.setFixedSize(80, 30)
         link_button.setStyleSheet(PRODUCTION_BUTTON_STYLE)
 
         trace_button = QPushButton("TRACE")
-        trace_button.setFixedSize(100, 30)
+        trace_button.setFixedSize(80, 30)
         trace_button.setStyleSheet(PRODUCTION_BUTTON_STYLE)
 
         buttons_layout.addWidget(link_button)
@@ -203,7 +203,7 @@ class TFManagementPage(QWidget):
     # ----------------------------------------------------------------
     def create_tf_block(self, title):
         block = QFrame()
-        block.setFixedSize(180, 130)
+        block.setFixedSize(150, 130)
         block.setStyleSheet(TFMANAGEMENT_TF_CONTAINER_STYLE)
 
         layout = QVBoxLayout(block)
@@ -251,7 +251,7 @@ class TFManagementPage(QWidget):
     # ----------------------------------------------------------------
     def create_adj_box(self, label_text):
         box = QFrame()
-        box.setFixedSize(180, 90)
+        box.setFixedSize(150, 90)
         box.setStyleSheet(TFMANAGEMENT_ADJ_BLOCK_STYLE)
         
         box_layout = QVBoxLayout(box)
