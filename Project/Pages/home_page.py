@@ -325,10 +325,15 @@ class HomePage(QWidget):
         clear_button.setStyleSheet(CLEAR_BUTTON_STYLE)
         clear_button.setFixedSize(80, 30)
         
-        right_layout.addWidget(length_label, 1, 1, Qt.AlignmentFlag.AlignLeft)
-        right_layout.addWidget(self.text_box1, 2, 2, Qt.AlignmentFlag.AlignLeft)
-        right_layout.addWidget(self.text_box2, 2, 3, Qt.AlignmentFlag.AlignLeft)
-        right_layout.addWidget(clear_button, 2, 4, Qt.AlignmentFlag.AlignRight)
+        # Length row
+        right_layout.addWidget(length_label, 1, 0, Qt.AlignmentFlag.AlignLeft)
+        
+        # Align textboxes with columns below
+        right_layout.addWidget(self.text_box1, 1, 2, Qt.AlignmentFlag.AlignLeft)
+        right_layout.addWidget(self.text_box2, 1, 3, Qt.AlignmentFlag.AlignLeft)
+        
+        # Clear button
+        right_layout.addWidget(clear_button, 1, 4, Qt.AlignmentFlag.AlignRight)
         
 
         # Row 3: L1
