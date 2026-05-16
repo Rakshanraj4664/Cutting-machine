@@ -1,34 +1,72 @@
+# =============================================================
 # main_page.py
+# =============================================================
 
 import sys
 import json
 import os
+
 from datetime import datetime
 
 from PyQt6.QtWidgets import (
-    QApplication, QWidget, QVBoxLayout, QHBoxLayout,
-    QPushButton, QSizePolicy, QStackedWidget,
-    QStatusBar, QLabel, QFrame
+    QApplication,
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QPushButton,
+    QSizePolicy,
+    QStackedWidget,
+    QStatusBar,
+    QLabel,
+    QFrame,
+    QSplashScreen
 )
+
 from PyQt6.QtCore import Qt, QTimer
-from PyQt6.QtGui import QFont
+
+from PyQt6.QtGui import (
+    QFont,
+    QPixmap,
+    QPainter,
+    QColor,
+    QFont as QFontGui
+)
 
 from styles import *
+
 from Pages.home_page import HomePage
 from Pages.production_page import ProductionPage
 from Pages.tf_management_page import TFManagementPage
 from Pages.production_data_page import ProductionDataPage
+
 from plc_handler import PLCHandler
 
 
+# =============================================================
+# MAIN WINDOW
+# =============================================================
 class MainWindow(QWidget):
+
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("Cutting Machine Control System")
+        # =====================================================
+        # WINDOW SETTINGS
+        # =====================================================
+        self.setWindowTitle(
+            "Cutting Machine Control System"
+        )
+
         self.setStyleSheet(MAIN_WINDOW_STYLE)
 
-        # UI References
+        # Fullscreen Kiosk Mode
+        self.setWindowFlags(
+            Qt.WindowType.FramelessWindowHint
+        )
+
+        # =====================================================
+        # UI REFERENCES
+        # =====================================================
         self.left_status = None
         self.plc_indicator = None
         self.plc_status_label = None
@@ -37,31 +75,60 @@ class MainWindow(QWidget):
         self.datetime_label = None
         self.uptime_label = None
 
-        # Main Layout
+        # =====================================================
+        # MAIN LAYOUT
+        # =====================================================
         main_layout = QVBoxLayout(self)
+
         main_layout.setContentsMargins(0, 0, 0, 0)
+
         main_layout.setSpacing(0)
 
+        # =====================================================
+        # SETUP UI
+        # =====================================================
         self.setup_top_bar(main_layout)
+
         self.setup_content_area(main_layout)
+
         self.setup_bottom_status_bar(main_layout)
 
+        # =====================================================
+        # TIMERS + PLC
+        # =====================================================
         self.setup_timers()
+
         self.init_plc()
 
+        # =====================================================
+        # DEFAULT PAGE
+        # =====================================================
         self.activate_top_button("Home")
 
     # =========================================================
     # TOP BAR
     # =========================================================
     def setup_top_bar(self, main_layout):
+
         topbar = QFrame()
+
         topbar.setStyleSheet(TOPBAR_STYLE)
-        topbar.setFixedHeight(80)
+
+        topbar.setMinimumHeight(60)
+
+        topbar.setMaximumHeight(85)
 
         topbar_layout = QHBoxLayout(topbar)
-        topbar_layout.setContentsMargins(10, 5, 10, 5)
 
+        topbar_layout.setContentsMargins(
+            8, 5, 8, 5
+        )
+
+        topbar_layout.setSpacing(5)
+
+        # =====================================================
+        # STACKED PAGES
+        # =====================================================
         self.stack = QStackedWidget()
 
         self.pages = {
@@ -71,39 +138,59 @@ class MainWindow(QWidget):
             "Production Data": ProductionDataPage()
         }
 
-        self.pages["Production Data"].set_production_page_reference(
+        self.pages[
+            "Production Data"
+        ].set_production_page_reference(
             self.pages["Production"]
         )
 
         for page in self.pages.values():
             self.stack.addWidget(page)
 
+        # =====================================================
+        # TOP BUTTONS
+        # =====================================================
         buttons_container = QWidget()
-        buttons_layout = QHBoxLayout(buttons_container)
-        buttons_layout.setContentsMargins(0, 0, 0, 0)
+
+        buttons_layout = QHBoxLayout(
+            buttons_container
+        )
+
+        buttons_layout.setContentsMargins(
+            0, 0, 0, 0
+        )
+
         buttons_layout.setSpacing(5)
 
         self.top_buttons = {}
 
         for name in self.pages.keys():
+
             btn = QPushButton(name)
-            btn.setFixedHeight(60)
-            btn.setMinimumWidth(120)
+
+            btn.setMinimumHeight(45)
+
             btn.setSizePolicy(
                 QSizePolicy.Policy.Expanding,
-                QSizePolicy.Policy.Expanding
+                QSizePolicy.Policy.Fixed
             )
 
-            btn.setStyleSheet(TOPBAR_BUTTON_STYLE)
+            btn.setStyleSheet(
+                TOPBAR_BUTTON_STYLE
+            )
 
             btn.clicked.connect(
-                lambda checked, n=name: self.activate_top_button(n)
+                lambda checked, n=name:
+                self.activate_top_button(n)
             )
 
             buttons_layout.addWidget(btn)
+
             self.top_buttons[name] = btn
 
-        topbar_layout.addWidget(buttons_container)
+        topbar_layout.addWidget(
+            buttons_container
+        )
 
         main_layout.addWidget(topbar)
 
@@ -111,25 +198,41 @@ class MainWindow(QWidget):
     # CONTENT AREA
     # =========================================================
     def setup_content_area(self, main_layout):
+
         content_layout = QHBoxLayout()
-        content_layout.setContentsMargins(0, 0, 0, 0)
+
+        content_layout.setContentsMargins(
+            0, 0, 0, 0
+        )
+
         content_layout.setSpacing(0)
 
-        # Sidebar
+        # =====================================================
+        # SIDEBAR
+        # =====================================================
         sidebar = QFrame()
+
         sidebar.setStyleSheet(SIDEBAR_STYLE)
-        sidebar.setFixedWidth(180)
+
+        sidebar.setMinimumWidth(120)
+
+        sidebar.setMaximumWidth(220)
 
         sidebar_layout = QVBoxLayout(sidebar)
-        sidebar_layout.setContentsMargins(10, 10, 10, 10)
-        sidebar_layout.setSpacing(10)
+
+        sidebar_layout.setContentsMargins(
+            8, 8, 8, 8
+        )
+
+        sidebar_layout.setSpacing(8)
 
         self.sidebar_buttons = {}
 
         for name, color in SIDEBAR_BUTTON_COLORS.items():
+
             btn = QPushButton(name)
 
-            btn.setMinimumHeight(50)
+            btn.setMinimumHeight(42)
 
             btn.setSizePolicy(
                 QSizePolicy.Policy.Expanding,
@@ -137,25 +240,39 @@ class MainWindow(QWidget):
             )
 
             btn.setStyleSheet(
-                SIDEBAR_BUTTON_STYLE.format(bg=color)
+                SIDEBAR_BUTTON_STYLE.format(
+                    bg=color
+                )
             )
 
             sidebar_layout.addWidget(btn)
 
             self.sidebar_buttons[name] = btn
 
-        # Disable buttons initially
+        # =====================================================
+        # DISABLE BUTTONS INITIALLY
+        # =====================================================
         for name, btn in self.sidebar_buttons.items():
+
             if name not in ["Restore", "Reset"]:
+
                 btn.setEnabled(False)
+
                 btn.setStyleSheet(
-                    SIDEBAR_BUTTON_STYLE.format(bg="#A0A0A0")
+                    SIDEBAR_BUTTON_STYLE.format(
+                        bg="#A0A0A0"
+                    )
                 )
 
-        # Enable controls
+        # =====================================================
+        # ENABLE BUTTONS
+        # =====================================================
         def enable_all_buttons():
+
             for name, btn in self.sidebar_buttons.items():
+
                 btn.setEnabled(True)
+
                 btn.setStyleSheet(
                     SIDEBAR_BUTTON_STYLE.format(
                         bg=SIDEBAR_BUTTON_COLORS[name]
@@ -167,31 +284,48 @@ class MainWindow(QWidget):
                 "success"
             )
 
-        # Button Connections
-        self.sidebar_buttons["Restore"].clicked.connect(enable_all_buttons)
-        self.sidebar_buttons["Reset"].clicked.connect(enable_all_buttons)
+        # =====================================================
+        # BUTTON CONNECTIONS
+        # =====================================================
+        self.sidebar_buttons["Restore"].clicked.connect(
+            enable_all_buttons
+        )
+
+        self.sidebar_buttons["Reset"].clicked.connect(
+            enable_all_buttons
+        )
 
         self.sidebar_buttons["Start"].clicked.connect(
-            lambda: self.send_plc_command("START")
+            lambda:
+            self.send_plc_command("START")
         )
 
         self.sidebar_buttons["Stop"].clicked.connect(
-            lambda: self.send_plc_command("STOP")
+            lambda:
+            self.send_plc_command("STOP")
         )
 
         self.sidebar_buttons["Production"].clicked.connect(
-            lambda: self.activate_top_button("Production")
+            lambda:
+            self.activate_top_button(
+                "Production"
+            )
         )
 
         self.sidebar_buttons["Supply"].clicked.connect(
-            lambda: self.update_status_message(
+            lambda:
+            self.update_status_message(
                 "Supply mode activated",
                 "info"
             )
         )
 
-        content_layout.addWidget(sidebar, 0)
-        content_layout.addWidget(self.stack, 1)
+        # =====================================================
+        # RESPONSIVE LAYOUT
+        # =====================================================
+        content_layout.addWidget(sidebar, 1)
+
+        content_layout.addWidget(self.stack, 6)
 
         main_layout.addLayout(content_layout)
 
@@ -199,54 +333,113 @@ class MainWindow(QWidget):
     # STATUS BAR
     # =========================================================
     def setup_bottom_status_bar(self, main_layout):
+
         self.status_bar = QStatusBar()
 
-        self.status_bar.setStyleSheet(STATUS_BAR_STYLE)
-        self.status_bar.setFixedHeight(35)
+        self.status_bar.setStyleSheet(
+            STATUS_BAR_STYLE
+        )
 
-        # Left Status
-        self.left_status = QLabel("✅ System Ready")
-        self.left_status.setStyleSheet(STATUS_LEFT_STYLE)
+        self.status_bar.setMinimumHeight(30)
 
-        self.status_bar.addWidget(self.left_status, 2)
+        self.status_bar.setMaximumHeight(40)
 
-        # PLC Section
+        # =====================================================
+        # LEFT STATUS
+        # =====================================================
+        self.left_status = QLabel(
+            "✅ System Ready"
+        )
+
+        self.left_status.setStyleSheet(
+            STATUS_LEFT_STYLE
+        )
+
+        self.status_bar.addWidget(
+            self.left_status,
+            2
+        )
+
+        # =====================================================
+        # PLC SECTION
+        # =====================================================
         plc_container = QFrame()
-        plc_container.setStyleSheet(PLC_CONTAINER_STYLE)
+
+        plc_container.setStyleSheet(
+            PLC_CONTAINER_STYLE
+        )
 
         plc_layout = QHBoxLayout(plc_container)
-        plc_layout.setContentsMargins(10, 2, 10, 2)
-        plc_layout.setSpacing(10)
+
+        plc_layout.setContentsMargins(
+            8, 2, 8, 2
+        )
+
+        plc_layout.setSpacing(8)
 
         self.plc_indicator = QLabel("🔴")
-        self.plc_indicator.setStyleSheet(PLC_INDICATOR_STYLE)
 
-        self.plc_status_label = QLabel("PLC: DISCONNECTED")
+        self.plc_indicator.setStyleSheet(
+            PLC_INDICATOR_STYLE
+        )
+
+        self.plc_status_label = QLabel(
+            "PLC: DISCONNECTED"
+        )
+
         self.plc_status_label.setStyleSheet(
             PLC_STATUS_DISCONNECTED_STYLE
         )
 
         self.plc_ip_label = QLabel("")
-        self.plc_ip_label.setStyleSheet(PLC_IP_STYLE)
 
-        plc_layout.addWidget(self.plc_indicator)
-        plc_layout.addWidget(self.plc_status_label)
-        plc_layout.addWidget(self.plc_ip_label)
+        self.plc_ip_label.setStyleSheet(
+            PLC_IP_STYLE
+        )
+
+        plc_layout.addWidget(
+            self.plc_indicator
+        )
+
+        plc_layout.addWidget(
+            self.plc_status_label
+        )
+
+        plc_layout.addWidget(
+            self.plc_ip_label
+        )
+
         plc_layout.addStretch()
 
-        self.status_bar.addPermanentWidget(plc_container, 1)
+        self.status_bar.addPermanentWidget(
+            plc_container,
+            1
+        )
 
-        # Right Side
+        # =====================================================
+        # RIGHT SIDE
+        # =====================================================
         right_container = QWidget()
 
-        right_layout = QHBoxLayout(right_container)
-        right_layout.setContentsMargins(0, 0, 10, 0)
-        right_layout.setSpacing(15)
+        right_layout = QHBoxLayout(
+            right_container
+        )
+
+        right_layout.setContentsMargins(
+            0, 0, 8, 0
+        )
+
+        right_layout.setSpacing(10)
 
         self.system_status = QLabel("⏸️")
-        self.system_status.setStyleSheet(SYSTEM_STATUS_STYLE)
 
-        right_layout.addWidget(self.system_status)
+        self.system_status.setStyleSheet(
+            SYSTEM_STATUS_STYLE
+        )
+
+        right_layout.addWidget(
+            self.system_status
+        )
 
         sep1 = QLabel("|")
         sep1.setStyleSheet(SEPARATOR_STYLE)
@@ -254,60 +447,93 @@ class MainWindow(QWidget):
         right_layout.addWidget(sep1)
 
         self.datetime_label = QLabel("")
-        self.datetime_label.setStyleSheet(DATETIME_STYLE)
 
-        right_layout.addWidget(self.datetime_label)
+        self.datetime_label.setStyleSheet(
+            DATETIME_STYLE
+        )
+
+        right_layout.addWidget(
+            self.datetime_label
+        )
 
         sep2 = QLabel("|")
         sep2.setStyleSheet(SEPARATOR_STYLE)
 
         right_layout.addWidget(sep2)
 
-        self.uptime_label = QLabel("Uptime: 00:00:00")
-        self.uptime_label.setStyleSheet(UPTIME_STYLE)
+        self.uptime_label = QLabel(
+            "Uptime: 00:00:00"
+        )
 
-        right_layout.addWidget(self.uptime_label)
+        self.uptime_label.setStyleSheet(
+            UPTIME_STYLE
+        )
 
-        self.status_bar.addPermanentWidget(right_container)
+        right_layout.addWidget(
+            self.uptime_label
+        )
 
-        main_layout.addWidget(self.status_bar)
+        self.status_bar.addPermanentWidget(
+            right_container
+        )
+
+        main_layout.addWidget(
+            self.status_bar
+        )
 
     # =========================================================
     # TIMERS
     # =========================================================
     def setup_timers(self):
+
         self.datetime_timer = QTimer()
-        self.datetime_timer.timeout.connect(self.update_datetime)
+
+        self.datetime_timer.timeout.connect(
+            self.update_datetime
+        )
+
         self.datetime_timer.start(1000)
 
         self.start_time = datetime.now()
 
         self.uptime_timer = QTimer()
-        self.uptime_timer.timeout.connect(self.update_uptime)
+
+        self.uptime_timer.timeout.connect(
+            self.update_uptime
+        )
+
         self.uptime_timer.start(1000)
 
         self.status_clear_timer = QTimer()
-        self.status_clear_timer.setSingleShot(True)
+
+        self.status_clear_timer.setSingleShot(
+            True
+        )
 
         self.update_datetime()
+
         self.update_uptime()
 
     # =========================================================
     # PLC
     # =========================================================
     def init_plc(self):
-        current_dir = os.path.dirname(os.path.abspath(__file__))
+
+        current_dir = os.path.dirname(
+            os.path.abspath(__file__)
+        )
 
         config_path = os.path.join(
             current_dir,
-            'plc_config.json'
+            "plc_config.json"
         )
 
         try:
-            with open(config_path, 'r') as f:
+            with open(config_path, "r") as f:
                 config = json.load(f)
 
         except FileNotFoundError:
+
             config = {
                 "plc_ip": "192.168.1.5",
                 "port": 502,
@@ -315,7 +541,7 @@ class MainWindow(QWidget):
                 "auto_connect": True
             }
 
-            with open(config_path, 'w') as f:
+            with open(config_path, "w") as f:
                 json.dump(config, f, indent=4)
 
         self.plc_ip_label.setText(
@@ -323,8 +549,8 @@ class MainWindow(QWidget):
         )
 
         self.plc = PLCHandler(
-            config['plc_ip'],
-            config['port']
+            config["plc_ip"],
+            config["port"]
         )
 
         self.plc.connection_status.connect(
@@ -339,17 +565,24 @@ class MainWindow(QWidget):
             self.on_plc_error
         )
 
-        if config.get('auto_connect', True):
+        # =====================================================
+        # AUTO CONNECT
+        # =====================================================
+        if config.get("auto_connect", True):
 
             self.update_status_message(
-                f"Connecting to PLC at {config['plc_ip']}...",
+                f"Connecting to PLC at "
+                f"{config['plc_ip']}...",
                 "info"
             )
 
             if self.plc.connect():
 
                 self.plc.start_polling(
-                    config.get('polling_interval_ms', 200)
+                    config.get(
+                        "polling_interval_ms",
+                        200
+                    )
                 )
 
                 self.update_status_message(
@@ -357,20 +590,29 @@ class MainWindow(QWidget):
                     "success"
                 )
 
-                self.pages["Home"].connect_to_plc(self.plc)
+                self.pages["Home"].connect_to_plc(
+                    self.plc
+                )
 
             else:
+
                 self.update_status_message(
                     "PLC Connection Failed",
                     "error"
                 )
 
+    # =========================================================
+    # SEND PLC COMMAND
+    # =========================================================
     def send_plc_command(self, command):
-        if hasattr(self, 'plc') and self.plc.connected:
+
+        if hasattr(self, "plc") and self.plc.connected:
 
             if self.plc.send_command(command):
 
-                print(f"[PLC] Command sent: {command}")
+                print(
+                    f"[PLC] Command sent: {command}"
+                )
 
                 self.update_status_message(
                     f"Command '{command}' sent",
@@ -378,14 +620,19 @@ class MainWindow(QWidget):
                 )
 
             else:
-                print(f"[PLC] Failed: {command}")
+
+                print(
+                    f"[PLC] Failed: {command}"
+                )
 
                 self.update_status_message(
-                    f"Failed to send '{command}'",
+                    f"Failed to send "
+                    f"'{command}'",
                     "error"
                 )
 
         else:
+
             self.update_status_message(
                 "PLC not connected",
                 "warning"
@@ -395,7 +642,9 @@ class MainWindow(QWidget):
     # PLC CALLBACKS
     # =========================================================
     def on_plc_connection(self, connected):
+
         if connected:
+
             self.plc_indicator.setText("🟢")
 
             self.plc_status_label.setText(
@@ -412,6 +661,7 @@ class MainWindow(QWidget):
             )
 
         else:
+
             self.plc_indicator.setText("🔴")
 
             self.plc_status_label.setText(
@@ -428,56 +678,79 @@ class MainWindow(QWidget):
             )
 
     def on_plc_error(self, error_msg):
+
         self.update_status_message(
             f"PLC Error: {error_msg}",
             "error"
         )
 
     def on_plc_data(self, data):
-        status = data.get('status', 'UNKNOWN')
+
+        status = data.get(
+            "status",
+            "UNKNOWN"
+        )
 
         status_icons = {
-            'RUNNING': ('🏭', 'Machine Running', "#A0D995"),
-            'IDLE': ('⏸️', 'Machine Idle', "#FFD95A"),
-            'ERROR': ('⚠️', 'Machine Error', "#D9534F"),
-            'STOPPED': ('⏹️', 'Machine Stopped', "#FF8C42")
+            "RUNNING": (
+                "🏭",
+                "Machine Running",
+                "#A0D995"
+            ),
+            "IDLE": (
+                "⏸️",
+                "Machine Idle",
+                "#FFD95A"
+            ),
+            "ERROR": (
+                "⚠️",
+                "Machine Error",
+                "#D9534F"
+            ),
+            "STOPPED": (
+                "⏹️",
+                "Machine Stopped",
+                "#FF8C42"
+            )
         }
 
         if status in status_icons:
-            icon, tooltip, color = status_icons[status]
+
+            icon, tooltip, color = \
+                status_icons[status]
 
             self.system_status.setText(icon)
 
-            self.system_status.setToolTip(tooltip)
+            self.system_status.setToolTip(
+                tooltip
+            )
 
             self.system_status.setStyleSheet(
-                f"font-size: 16px; color: {color};"
-            )
-
-        if status == 'RUNNING':
-            self.sidebar_buttons["Start"].setEnabled(False)
-            self.sidebar_buttons["Stop"].setEnabled(True)
-
-        elif status in ['STOPPED', 'IDLE']:
-            self.sidebar_buttons["Start"].setEnabled(True)
-            self.sidebar_buttons["Stop"].setEnabled(False)
-
-        if status == 'ERROR':
-            self.update_status_message(
-                "Machine ERROR state",
-                "error"
+                f"font-size: 16px;"
+                f"color: {color};"
             )
 
     # =========================================================
-    # STATUS MESSAGES
+    # STATUS MESSAGE
     # =========================================================
-    def update_status_message(self, message, msg_type="info"):
+    def update_status_message(
+        self,
+        message,
+        msg_type="info"
+    ):
 
         styles = {
-            "success": STATUS_LEFT_SUCCESS_STYLE,
-            "error": STATUS_LEFT_ERROR_STYLE,
-            "warning": STATUS_LEFT_WARNING_STYLE,
-            "info": STATUS_LEFT_INFO_STYLE
+            "success":
+                STATUS_LEFT_SUCCESS_STYLE,
+
+            "error":
+                STATUS_LEFT_ERROR_STYLE,
+
+            "warning":
+                STATUS_LEFT_WARNING_STYLE,
+
+            "info":
+                STATUS_LEFT_INFO_STYLE
         }
 
         icons = {
@@ -488,7 +761,8 @@ class MainWindow(QWidget):
         }
 
         self.left_status.setText(
-            f"{icons.get(msg_type)} {message}"
+            f"{icons.get(msg_type)} "
+            f"{message}"
         )
 
         self.left_status.setStyleSheet(
@@ -508,30 +782,50 @@ class MainWindow(QWidget):
         )
 
     def reset_status_message(self):
-        self.left_status.setText("✅ System Ready")
-        self.left_status.setStyleSheet(STATUS_LEFT_STYLE)
+
+        self.left_status.setText(
+            "✅ System Ready"
+        )
+
+        self.left_status.setStyleSheet(
+            STATUS_LEFT_STYLE
+        )
 
     # =========================================================
-    # TIME FUNCTIONS
+    # TIME
     # =========================================================
     def update_datetime(self):
+
         now = datetime.now()
 
         self.datetime_label.setText(
-            now.strftime("%d-%m-%Y %H:%M:%S")
+            now.strftime(
+                "%d-%m-%Y %H:%M:%S"
+            )
         )
 
     def update_uptime(self):
-        elapsed = datetime.now() - self.start_time
 
-        total_seconds = int(elapsed.total_seconds())
+        elapsed = datetime.now() - \
+            self.start_time
+
+        total_seconds = int(
+            elapsed.total_seconds()
+        )
 
         hours = total_seconds // 3600
-        minutes = (total_seconds % 3600) // 60
+
+        minutes = (
+            total_seconds % 3600
+        ) // 60
+
         seconds = total_seconds % 60
 
         self.uptime_label.setText(
-            f"Uptime: {hours:02d}:{minutes:02d}:{seconds:02d}"
+            f"Uptime: "
+            f"{hours:02d}:"
+            f"{minutes:02d}:"
+            f"{seconds:02d}"
         )
 
     # =========================================================
@@ -539,14 +833,17 @@ class MainWindow(QWidget):
     # =========================================================
     def activate_top_button(self, name):
 
-        for bname, btn in self.top_buttons.items():
+        for bname, btn in \
+                self.top_buttons.items():
 
             if bname == name:
+
                 btn.setStyleSheet(
                     TOPBAR_BUTTON_ACTIVE_STYLE
                 )
 
             else:
+
                 btn.setStyleSheet(
                     TOPBAR_BUTTON_STYLE
                 )
@@ -561,23 +858,28 @@ class MainWindow(QWidget):
         )
 
     # =========================================================
+    # BLOCK KEYBOARD EXIT
+    # =========================================================
+    def keyPressEvent(self, event):
+
+        event.ignore()
+
+    # =========================================================
     # CLOSE EVENT
     # =========================================================
     def closeEvent(self, event):
 
-        self.update_status_message(
-            "Shutting down...",
-            "info"
-        )
-
-        if hasattr(self, 'plc'):
+        if hasattr(self, "plc"):
             self.plc.disconnect()
 
         self.datetime_timer.stop()
+
         self.uptime_timer.stop()
+
         self.status_clear_timer.stop()
 
         event.accept()
+
 
 
 # =============================================================
@@ -587,14 +889,92 @@ if __name__ == "__main__":
 
     app = QApplication(sys.argv)
 
-    app.setFont(QFont("Segoe UI", 9))
+    app.setFont(QFont("Segoe UI", 8))
 
-    window = MainWindow()
+    # =========================================================
+    # FULLSCREEN SPLASH SCREEN
+    # =========================================================
+    splash_pixmap = QPixmap(1920, 1080)
+    splash_pixmap.fill(QColor(27, 42, 73))
 
-    window.resize(1280, 750)
+    painter = QPainter(splash_pixmap)
 
-    window.setMinimumSize(1024, 600)
+    # ---------------------------------------------------------
+    # LOAD LOGO
+    # ---------------------------------------------------------
+    current_dir = os.path.dirname(os.path.abspath(__file__))
 
-    window.show()
+    logo_path = os.path.join(
+        current_dir,
+        "assets",
+        "logo.jpeg"
+    )
+
+    logo = QPixmap(logo_path)
+
+    if logo.isNull():
+        print(f"[ERROR] Splash image not found:\n{logo_path}")
+
+    else:
+        # Scale logo
+        scaled_logo = logo.scaled(
+            400,
+            400,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation
+        )
+
+        # Center position
+        x = (splash_pixmap.width() - scaled_logo.width()) // 2
+        y = (splash_pixmap.height() - scaled_logo.height()) // 2 - 80
+
+        # Draw logo
+        painter.drawPixmap(x, y, scaled_logo)
+
+    # ---------------------------------------------------------
+    # DRAW TEXT
+    # ---------------------------------------------------------
+    painter.setPen(QColor(255, 255, 255))
+
+    painter.setFont(
+        QFontGui(
+            "Segoe UI",
+            28,
+            QFontGui.Weight.Bold
+        )
+    )
+
+    painter.drawText(
+        splash_pixmap.rect(),
+        Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignBottom,
+        "\n\nCUTTING MACHINE\nStarting..."
+    )
+
+    painter.end()
+
+    # ---------------------------------------------------------
+    # SHOW SPLASH
+    # ---------------------------------------------------------
+    splash = QSplashScreen(
+        splash_pixmap,
+        Qt.WindowType.FramelessWindowHint
+    )
+
+    splash.showFullScreen()
+
+    app.processEvents()
+
+    # =========================================================
+    # START MAIN WINDOW AFTER 10 SECONDS
+    # =========================================================
+    def launch():
+
+        window = MainWindow()
+
+        window.showFullScreen()
+
+        splash.finish(window)
+
+    QTimer.singleShot(10000, launch)
 
     sys.exit(app.exec())
