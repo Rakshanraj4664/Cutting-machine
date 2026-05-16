@@ -1,7 +1,7 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QFrame, QLabel, QLineEdit,
-    QPushButton, QSpinBox, QGroupBox
+    QPushButton, QSpinBox, QGroupBox, QScrollArea
 )
 from styles import *
 from pathlib import Path
@@ -13,10 +13,9 @@ class TFManagementPage(QWidget):
         super().__init__()
         self.setStyleSheet(f"background-color: {LIGHT_GREY};")
 
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(15)
-        layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
 
         # -------------------------
         # Title Bar
@@ -32,7 +31,21 @@ class TFManagementPage(QWidget):
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_layout.addWidget(title_label)
 
-        layout.addWidget(title_bar)
+        main_layout.addWidget(title_bar)
+
+        # -------------------------
+        # Scroll Area for content
+        # -------------------------
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setStyleSheet(f"background-color: {LIGHT_GREY};")
+        
+        scroll_content = QWidget()
+        scroll_content.setStyleSheet(f"background-color: {LIGHT_GREY};")
+        layout = QVBoxLayout(scroll_content)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(15)
+        layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         # -------------------------
         # First Black Bordered Box (TF Section)
@@ -138,26 +151,22 @@ class TFManagementPage(QWidget):
         layout.addWidget(roller_group)
 
         # ---------------------------------------------------
-        # NEW ROW 1 — Input Belt % and Boost Roller %
+        # NEW ROW 1 — Input Belt %, Boost Roller %, and Reset Tubular Box
         # ---------------------------------------------------
         percent_row = QHBoxLayout()
         percent_row.setSpacing(15)
         percent_row.setContentsMargins(20, 0, 20, 0)
         percent_row.addWidget(self.create_adj_box("Input belt %"))
         percent_row.addWidget(self.create_adj_box("Boost roller %"))
-        percent_row.addStretch()
-        layout.addLayout(percent_row)
-
-        # ---------------------------------------------------
-        # NEW ROW 2 — Black Bordered Box with Reset Tubular and Icons
-        # ---------------------------------------------------
+        
+        # Black Bordered Box with Reset Tubular and Icons (now beside boost roller)
         black_border_box = QFrame()
-        black_border_box.setFixedSize(600, 90)  # Fixed width 600, height 90
         black_border_box.setStyleSheet(BLACK_BORDER_BOX_STYLE)
+        black_border_box.setFixedHeight(90)
 
         inner_layout = QHBoxLayout(black_border_box)
         inner_layout.setContentsMargins(20, 15, 20, 15)
-        inner_layout.setSpacing(0)
+        inner_layout.setSpacing(10)
 
         # Left: Reset Tubular button
         reset_button = QPushButton("Reset Tubular")
@@ -177,7 +186,16 @@ class TFManagementPage(QWidget):
             icon_layout.addWidget(icon_btn)
 
         inner_layout.addLayout(icon_layout)
-        layout.addWidget(black_border_box, alignment=Qt.AlignmentFlag.AlignLeft)
+        percent_row.addWidget(black_border_box, 1)
+        
+        percent_row.addStretch()
+        layout.addLayout(percent_row)
+        
+        layout.addStretch()
+        
+        # Add scroll content to scroll area
+        scroll.setWidget(scroll_content)
+        main_layout.addWidget(scroll)
 
 
     # ----------------------------------------------------------------

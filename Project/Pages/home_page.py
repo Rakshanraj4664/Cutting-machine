@@ -123,6 +123,7 @@ class HomePage(QWidget):
         # Add space between second and third row
         # -------------------------
         main_layout.addSpacing(15)
+        
         # -------------------------
         # 3rd Row: Fabric Thickness, Conveyor Offset
         # -------------------------
@@ -178,15 +179,15 @@ class HomePage(QWidget):
         fourth_row = QWidget()
         fourth_layout = QHBoxLayout(fourth_row)
         fourth_layout.setContentsMargins(0, 0, 0, 0)
-        fourth_layout.setSpacing(50)
-        fourth_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        fourth_layout.setSpacing(30)
+        fourth_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         
         # -------------------------
         # LEFT PART: Trolley Speed Controls
         # -------------------------
         left_part = QWidget()
         left_layout = QVBoxLayout(left_part)
-        left_layout.setContentsMargins(0, 70, 0, 0)
+        left_layout.setContentsMargins(0, 0, 0, 0)
         left_layout.setSpacing(20)
         left_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
@@ -267,179 +268,163 @@ class HomePage(QWidget):
 
         # Add widgets with stretch factors for vertical distribution
         left_layout.addWidget(feeding_widget)
-        left_layout.addStretch(1)  # Add stretch between feeding and unloading
+        left_layout.addStretch(1)
         left_layout.addWidget(unloading_widget)
-        left_layout.addStretch(1)  # Add stretch between unloading and upstroke
+        left_layout.addStretch(1)
         left_layout.addWidget(upstroke_widget)
-        left_layout.addStretch(2)  # Add extra stretch at the bottom to push content upward
+        left_layout.addStretch(2)
         
         # -------------------------
         # RIGHT PART: Selective Movement Box
         # -------------------------
         right_part = QGroupBox("Selective Movement")
         right_part.setStyleSheet(HOME_LEGEND_STYLE)
-        right_part.setFixedHeight(330)
-        right_part.setFixedWidth(700)  # Increased width for better text visibility
+        right_part.setMinimumHeight(250)
+
+        # THIS FIXES THE HALF-HIDDEN ISSUE
+        right_part.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Preferred
+        )
+
         right_layout = QGridLayout(right_part)
-        right_layout.setVerticalSpacing(10)
-        right_layout.setHorizontalSpacing(15)        
-        right_layout.setColumnStretch(2, 1)  # Column 2 - stretch to push right
-
-
-        # Keep all original radio buttons and elements exactly as they were
+        
+        # Row 0: Radio buttons
         self.standard_radio = QRadioButton("Standard")
         self.standard_radio.setStyleSheet(HOME_RADIO_BUTTON_STYLE)
-
         self.bundle_shift_radio = QRadioButton("Bundle Shift")
         self.bundle_shift_radio.setStyleSheet(HOME_RADIO_BUTTON_STYLE)
-
         self.multi_step_radio = QRadioButton("Multi Step")
         self.multi_step_radio.setStyleSheet(HOME_RADIO_BUTTON_STYLE)
-
         self.standard_radio.setChecked(True)
-
-        # Keep original length label
+        
+        radio_layout = QHBoxLayout()
+        radio_layout.setSpacing(20)
+        radio_layout.addWidget(self.standard_radio)
+        radio_layout.addWidget(self.bundle_shift_radio)
+        radio_layout.addWidget(self.multi_step_radio)
+        radio_layout.addStretch()
+        
+        right_layout.addLayout(radio_layout, 0, 0, 1, 5)
+        
+        # Row 1: Length label and text boxes
         length_label = QLabel("Length[mm]:")
         length_label.setStyleSheet(HOME_LABEL_STYLE)
-
-        # Keep original checkboxes and inputs
-        self.l1_checkbox = QCheckBox("L1")
-        self.l1_checkbox.setStyleSheet(HOME_CHECKBOX_STYLE)
-        self.l1_input = QLineEdit()
-        self.l1_input.setStyleSheet(HOME_INPUT_STYLE)
-        self.l1_input.setFixedWidth(150)
-        self.l1_input.setFixedHeight(30)
-
-        self.l2_checkbox = QCheckBox("L2")
-        self.l2_checkbox.setStyleSheet(HOME_CHECKBOX_STYLE)
-        self.l2_input = QLineEdit()
-        self.l2_input.setStyleSheet(HOME_INPUT_STYLE)
-        self.l2_input.setFixedWidth(150)
-        self.l2_input.setFixedHeight(30)
-
-        self.l3_checkbox = QCheckBox("L3")
-        self.l3_checkbox.setStyleSheet(HOME_CHECKBOX_STYLE)
-        self.l3_input = QLineEdit()
-        self.l3_input.setStyleSheet(HOME_INPUT_STYLE)
-        self.l3_input.setFixedWidth(150)
-        self.l3_input.setFixedHeight(30)
-
-        self.l4_checkbox = QCheckBox("L4")
-        self.l4_checkbox.setStyleSheet(HOME_CHECKBOX_STYLE)
-        self.l4_input = QLineEdit()
-        self.l4_input.setStyleSheet(HOME_INPUT_STYLE)
-        self.l4_input.setFixedWidth(150)
-        self.l4_input.setFixedHeight(30)
-
-        # NEW ELEMENTS ONLY (right aligned)
+        
+        self.text_box1 = QLineEdit()
+        self.text_box1.setStyleSheet(HOME_INPUT_STYLE)
+        self.text_box1.setFixedWidth(120)
+        self.text_box1.setPlaceholderText("Text 1")
+        
+        self.text_box2 = QLineEdit()
+        self.text_box2.setStyleSheet(HOME_INPUT_STYLE)
+        self.text_box2.setFixedWidth(120)
+        self.text_box2.setPlaceholderText("Text 2")
+        
         clear_button = QPushButton("Clear")
         clear_button.setStyleSheet(CLEAR_BUTTON_STYLE)
         clear_button.setFixedSize(80, 30)
+        
+        right_layout.addWidget(length_label, 1, 1, Qt.AlignmentFlag.AlignLeft)
+        right_layout.addWidget(self.text_box1, 2, 2, Qt.AlignmentFlag.AlignLeft)
+        right_layout.addWidget(self.text_box2, 2, 3, Qt.AlignmentFlag.AlignLeft)
+        right_layout.addWidget(clear_button, 2, 4, Qt.AlignmentFlag.AlignRight)
+        
 
-        self.text_box1 = QLineEdit()
-        self.text_box1.setStyleSheet(HOME_INPUT_STYLE)
-        self.text_box1.setFixedWidth(150)
-        self.text_box1.setFixedHeight(30)
-        self.text_box1.setPlaceholderText("Text 1")
-
-        self.text_box2 = QLineEdit()
-        self.text_box2.setStyleSheet(HOME_INPUT_STYLE)
-        self.text_box2.setFixedWidth(150)
-        self.text_box2.setFixedHeight(30)
-        self.text_box2.setPlaceholderText("Text 2")
-
-        counters_label = QLabel("Counters:")
-        counters_label.setStyleSheet(HOME_LABEL_STYLE)
-
-        cuts_label = QLabel("Number of Cuts:")
-        cuts_label.setStyleSheet(HOME_LABEL_STYLE)
-
+        # Row 3: L1
+        l1_label = QLabel("L1")
+        l1_label.setStyleSheet(HOME_LABEL_STYLE)
+        self.l1_checkbox = QCheckBox()
+        self.l1_checkbox.setStyleSheet(HOME_CHECKBOX_STYLE)
+        self.l1_input = QLineEdit()
+        self.l1_input.setStyleSheet(HOME_INPUT_STYLE)
+        self.l1_input.setFixedWidth(100)
         self.l1_counter_input = QLineEdit()
         self.l1_counter_input.setStyleSheet(HOME_INPUT_STYLE)
-        self.l1_counter_input.setFixedWidth(150)
-        self.l1_counter_input.setFixedHeight(30)
-
+        self.l1_counter_input.setFixedWidth(100)
         self.l1_cuts_input = QLineEdit()
         self.l1_cuts_input.setStyleSheet(HOME_INPUT_STYLE)
-        self.l1_cuts_input.setFixedWidth(150)
-        self.l1_cuts_input.setFixedHeight(30)
-
+        self.l1_cuts_input.setFixedWidth(100)
+        
+        right_layout.addWidget(l1_label, 3, 0)
+        right_layout.addWidget(self.l1_checkbox, 3, 1)
+        right_layout.addWidget(self.l1_input, 3, 2)
+        right_layout.addWidget(self.l1_counter_input, 3, 3)
+        right_layout.addWidget(self.l1_cuts_input, 3, 4)
+        
+        # Row 4: L2
+        l2_label = QLabel("L2")
+        l2_label.setStyleSheet(HOME_LABEL_STYLE)
+        self.l2_checkbox = QCheckBox()
+        self.l2_checkbox.setStyleSheet(HOME_CHECKBOX_STYLE)
+        self.l2_input = QLineEdit()
+        self.l2_input.setStyleSheet(HOME_INPUT_STYLE)
+        self.l2_input.setFixedWidth(100)
         self.l2_counter_input = QLineEdit()
         self.l2_counter_input.setStyleSheet(HOME_INPUT_STYLE)
-        self.l2_counter_input.setFixedWidth(150)
-        self.l2_counter_input.setFixedHeight(30)
-
+        self.l2_counter_input.setFixedWidth(100)
         self.l2_cuts_input = QLineEdit()
         self.l2_cuts_input.setStyleSheet(HOME_INPUT_STYLE)
-        self.l2_cuts_input.setFixedWidth(150)
-        self.l2_cuts_input.setFixedHeight(30)
-
+        self.l2_cuts_input.setFixedWidth(100)
+        
+        right_layout.addWidget(l2_label, 4, 0)
+        right_layout.addWidget(self.l2_checkbox, 4, 1)
+        right_layout.addWidget(self.l2_input, 4, 2)
+        right_layout.addWidget(self.l2_counter_input, 4, 3)
+        right_layout.addWidget(self.l2_cuts_input, 4, 4)
+        
+        # Row 5: L3
+        l3_label = QLabel("L3")
+        l3_label.setStyleSheet(HOME_LABEL_STYLE)
+        self.l3_checkbox = QCheckBox()
+        self.l3_checkbox.setStyleSheet(HOME_CHECKBOX_STYLE)
+        self.l3_input = QLineEdit()
+        self.l3_input.setStyleSheet(HOME_INPUT_STYLE)
+        self.l3_input.setFixedWidth(100)
         self.l3_counter_input = QLineEdit()
         self.l3_counter_input.setStyleSheet(HOME_INPUT_STYLE)
-        self.l3_counter_input.setFixedWidth(150)
-        self.l3_counter_input.setFixedHeight(30)
-
+        self.l3_counter_input.setFixedWidth(100)
         self.l3_cuts_input = QLineEdit()
         self.l3_cuts_input.setStyleSheet(HOME_INPUT_STYLE)
-        self.l3_cuts_input.setFixedWidth(150)
-        self.l3_cuts_input.setFixedHeight(30)
-
+        self.l3_cuts_input.setFixedWidth(100)
+        
+        right_layout.addWidget(l3_label, 5, 0)
+        right_layout.addWidget(self.l3_checkbox, 5, 1)
+        right_layout.addWidget(self.l3_input, 5, 2)
+        right_layout.addWidget(self.l3_counter_input, 5, 3)
+        right_layout.addWidget(self.l3_cuts_input, 5, 4)
+        
+        # Row 6: L4
+        l4_label = QLabel("L4")
+        l4_label.setStyleSheet(HOME_LABEL_STYLE)
+        self.l4_checkbox = QCheckBox()
+        self.l4_checkbox.setStyleSheet(HOME_CHECKBOX_STYLE)
+        self.l4_input = QLineEdit()
+        self.l4_input.setStyleSheet(HOME_INPUT_STYLE)
+        self.l4_input.setFixedWidth(100)
         self.l4_counter_input = QLineEdit()
         self.l4_counter_input.setStyleSheet(HOME_INPUT_STYLE)
-        self.l4_counter_input.setFixedWidth(150)
-        self.l4_counter_input.setFixedHeight(30)
-
+        self.l4_counter_input.setFixedWidth(100)
         self.l4_cuts_input = QLineEdit()
         self.l4_cuts_input.setStyleSheet(HOME_INPUT_STYLE)
-        self.l4_cuts_input.setFixedWidth(150)
-        self.l4_cuts_input.setFixedHeight(30)
-
-        # Reorganized layout for better alignment and organization
-        # Row 0: Radio buttons horizontal, clear button on right
-        right_layout.addWidget(self.standard_radio, 0, 0, Qt.AlignmentFlag.AlignLeft)
-        right_layout.addWidget(self.bundle_shift_radio, 0, 1, Qt.AlignmentFlag.AlignLeft)
-        right_layout.addWidget(self.multi_step_radio, 0, 2, Qt.AlignmentFlag.AlignLeft)
-        right_layout.addWidget(clear_button, 0, 3, Qt.AlignmentFlag.AlignRight)
-
-        # Row 1: Length label on left, text boxes horizontal to it
-        right_layout.addWidget(length_label, 1, 0, Qt.AlignmentFlag.AlignLeft)
-        right_layout.addWidget(self.text_box1, 1, 2, Qt.AlignmentFlag.AlignLeft)
-        right_layout.addWidget(self.text_box2, 1, 3, Qt.AlignmentFlag.AlignLeft)
-
-        # Row 2: Counters and Cuts labels
-        right_layout.addWidget(counters_label, 2, 2, Qt.AlignmentFlag.AlignLeft)
-        right_layout.addWidget(cuts_label, 2, 3, Qt.AlignmentFlag.AlignLeft)
-
-        # Rows 3-6: L1-L4 with checkbox, input, counter, cuts
-        right_layout.addWidget(self.l1_checkbox, 3, 0, Qt.AlignmentFlag.AlignLeft)
-        right_layout.addWidget(self.l1_input, 3, 1, Qt.AlignmentFlag.AlignLeft)
-        right_layout.addWidget(self.l1_counter_input, 3, 2, Qt.AlignmentFlag.AlignLeft)
-        right_layout.addWidget(self.l1_cuts_input, 3, 3, Qt.AlignmentFlag.AlignLeft)
-
-        right_layout.addWidget(self.l2_checkbox, 4, 0, Qt.AlignmentFlag.AlignLeft)
-        right_layout.addWidget(self.l2_input, 4, 1, Qt.AlignmentFlag.AlignLeft)
-        right_layout.addWidget(self.l2_counter_input, 4, 2, Qt.AlignmentFlag.AlignLeft)
-        right_layout.addWidget(self.l2_cuts_input, 4, 3, Qt.AlignmentFlag.AlignLeft)
-
-        right_layout.addWidget(self.l3_checkbox, 5, 0, Qt.AlignmentFlag.AlignLeft)
-        right_layout.addWidget(self.l3_input, 5, 1, Qt.AlignmentFlag.AlignLeft)
-        right_layout.addWidget(self.l3_counter_input, 5, 2, Qt.AlignmentFlag.AlignLeft)
-        right_layout.addWidget(self.l3_cuts_input, 5, 3, Qt.AlignmentFlag.AlignLeft)
-
-        right_layout.addWidget(self.l4_checkbox, 6, 0, Qt.AlignmentFlag.AlignLeft)
-        right_layout.addWidget(self.l4_input, 6, 1, Qt.AlignmentFlag.AlignLeft)
-        right_layout.addWidget(self.l4_counter_input, 6, 2, Qt.AlignmentFlag.AlignLeft)
-        right_layout.addWidget(self.l4_cuts_input, 6, 3, Qt.AlignmentFlag.AlignLeft)
-
-        # Set column stretches for proper alignment
-        right_layout.setColumnStretch(0, 0)
-        right_layout.setColumnStretch(1, 0)
-        right_layout.setColumnStretch(2, 1)
-        right_layout.setColumnStretch(3, 1)
+        self.l4_cuts_input.setFixedWidth(100)
         
-        # Add left and right parts to fourth row with 50-50 split
-        fourth_layout.addWidget(left_part, 1)  # Stretch factor 1
-        fourth_layout.addWidget(right_part, 1)  # Stretch factor 1
+        right_layout.addWidget(l4_label, 6, 0)
+        right_layout.addWidget(self.l4_checkbox, 6, 1)
+        right_layout.addWidget(self.l4_input, 6, 2)
+        right_layout.addWidget(self.l4_counter_input, 6, 3)
+        right_layout.addWidget(self.l4_cuts_input, 6, 4)
+        
+        # Set column stretches
+        right_layout.setColumnStretch(0, 0)  # Layer label
+        right_layout.setColumnStretch(1, 0)  # Enable checkbox
+        right_layout.setColumnStretch(2, 1)  # Value input
+        right_layout.setColumnStretch(3, 1)  # Counter input
+        right_layout.setColumnStretch(4, 1)  # Cuts input
+        
+        # Add left and right parts to fourth row
+        fourth_layout.addWidget(left_part, 1)
+        fourth_layout.addWidget(right_part, 1)
         
         # Add fourth row to main layout
         main_layout.addWidget(fourth_row)
@@ -453,7 +438,7 @@ class HomePage(QWidget):
         # 5th Row: Black border box with reset button and icons
         # -------------------------
         black_border_box = QFrame()
-        black_border_box.setFixedWidth(600)  # Fixed width 600
+        black_border_box.setFixedWidth(600)
         black_border_box.setStyleSheet(BLACK_BORDER_BOX_STYLE)
 
         inner_layout = QHBoxLayout(black_border_box)
@@ -463,10 +448,10 @@ class HomePage(QWidget):
         # Left: Reset Tubular button
         reset_button = QPushButton("Reset Tubular")
         reset_button.setFixedSize(150, 35)
-        reset_button.setStyleSheet(HOME_BUTTON_STYLE)  # Changed from PRODUCTION_BUTTON_STYLE
+        reset_button.setStyleSheet(HOME_BUTTON_STYLE)
         inner_layout.addWidget(reset_button, alignment=Qt.AlignmentFlag.AlignLeft)
 
-        inner_layout.addStretch(1)  # Added stretch factor to horizontally stretch left part
+        inner_layout.addStretch(1)
 
         # Right: 4 mini icon buttons (placeholders)
         icon_layout = QHBoxLayout()
@@ -474,7 +459,7 @@ class HomePage(QWidget):
         for i in range(4):
             icon_btn = QPushButton()
             icon_btn.setFixedSize(50, 50)
-            icon_btn.setStyleSheet(STYLES_MINIICON_STYLE)  # Changed from TFMANAGEMENT_MINIICON_STYLE
+            icon_btn.setStyleSheet(STYLES_MINIICON_STYLE)
             icon_layout.addWidget(icon_btn)
 
         inner_layout.addLayout(icon_layout)

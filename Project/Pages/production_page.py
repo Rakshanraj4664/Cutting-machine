@@ -7,6 +7,7 @@ from PyQt6.QtCore import Qt
 import sys, os, json
 from pathlib import Path
 from PyQt6 import QtWidgets
+from datetime import datetime
 
 # Add parent directory
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
@@ -23,8 +24,8 @@ class NewProductionDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("New Production File")
-        self.setGeometry(100, 100, 800, 900)
-        self.setMinimumSize(700, 800)
+        self.setGeometry(100, 100, 700, 800)
+        self.setMinimumSize(600, 700)
         
         # Apply stylesheet
         self.setStyleSheet(f"background-color: {LIGHT_GREY};")
@@ -642,6 +643,13 @@ class ProductionPage(QWidget):
                     home_page.fabric_input.setText(data.get("fabric_thickness_mm", ""))
                 if hasattr(home_page, 'conveyor_input'):
                     home_page.conveyor_input.setText(data.get("conveyor_offset_mm", ""))
+            
+            # Refresh production data page
+            if self.main_window and hasattr(self.main_window, 'pages'):
+                prod_data_page = self.main_window.pages.get("Production Data")
+                if prod_data_page and hasattr(prod_data_page, 'refresh_all'):
+                    prod_data_page.refresh_all()
+                    
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to populate fields: {str(e)}")
 
@@ -684,13 +692,33 @@ class ProductionPage(QWidget):
             QMessageBox.critical(self, "Error", f"Failed to load file: {str(e)}")
             return False
 
+    def clear_all_fields(self):
+        """Clear all form input fields."""
+        self.workorder_input.clear()
+        self.batch_input.clear()
+        self.fabric_id_input.clear()
+        self.color_input.clear()
+        self.fabric_description_input.clear()
+        self.blend_input.clear()
+        self.width_input.clear()
+        self.target_prod_input.clear()
+        self.style_input.clear()
+        self.size_input.clear()
+        self.shape_id_input.clear()
+        self.shape_label_input.clear()
+        self.weight_loaded_input.clear()
+        self.component_input.clear()
+        self.qturn_id_input.clear()
+        self.default_cycle_time_input.clear()
+        self.cutting_file_description_input.clear()
+        self.file_input.clear()
+        self.current_file = None
+
     def delete_production_file(self, file_path):
         """Delete a production JSON file."""
         try:
             Path(file_path).unlink()
-            if self.current_file == file_path:
-                self.current_file = None
-                self.file_input.clear()
+            self.clear_all_fields()
             QMessageBox.information(self, "Success", "Production file deleted successfully.")
             return True
         except Exception as e:
@@ -774,3 +802,63 @@ class ProductionPage(QWidget):
             new_name = dialog.get_new_name()
             if new_name:
                 self.rename_production_file(self.current_file, new_name)
+
+    # ===========================
+    # LOGGING METHODS
+    # ===========================
+
+    def get_log_path(self):
+        """Get or create production log file"""
+        log_dir = Path(__file__).parent.parent / "logs"
+        log_dir.mkdir(exist_ok=True)
+        return log_dir / "production_log.csv"
+    
+    def log_production_entry(self, batch_id, work_order, target, actual, status, operator="SYSTEM"):
+        """Log a production entry to CSV"""
+        import csv
+        log_path = self.get_log_path()
+        file_exists = log_path.exists()
+        
+        try:
+            with open(log_path, 'a', newline='') as f:
+                writer = csv.writer(f)
+                if not file_exists:
+                    writer.writerow(["Timestamp", "Batch ID", "Work Order", "Target", "Actual", "Status", "Operator"])
+                writer.writerow([
+                    datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    batch_id,
+                    work_order,
+                    target,
+                    actual,
+                    status,
+                    operator
+                ])
+            
+            # Notify production data page if available
+            if self.main_window and hasattr(self.main_window, 'pages'):
+                prod_data_page = self.main_window.pages.get("Production Data")
+                if prod_data_page and hasattr(prod_data_page, 'refresh_all'):
+                    prod_data_page.refresh_all()
+            
+            return True
+        except Exception as e:
+            print(f"Error logging production: {e}")
+            return False
+    
+    def log_batch_started(self):
+        """Log when a batch is started"""
+        data = self.get_form_data()
+        batch_id = data.get('batch_id', 'N/A')
+        work_order = data.get('work_order_id', 'N/A')
+        target = data.get('target_prod', '0')
+        
+        if batch_id and batch_id != 'N/A':
+            self.log_production_entry(
+                batch_id=batch_id,
+                work_order=work_order,
+                target=target,
+                actual=0,
+                status="STARTED",
+                operator="SYSTEM"
+            )
+            self.rename_production_file(self.current_file, new_name)

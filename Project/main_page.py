@@ -304,19 +304,29 @@ class MainWindow(QWidget):
     def on_plc_data(self, data):
         """Handle incoming PLC data"""
         status = data.get('status', 'UNKNOWN')
-        
+
         status_icons = {
-            'RUNNING': ('🏭', 'Machine Running'),
-            'IDLE': ('⏸️', 'Machine Idle'),
-            'ERROR': ('⚠️', 'Machine Error - Check PLC'),
-            'STOPPED': ('⏹️', 'Machine Stopped')
+            'RUNNING': ('🏭', 'Machine Running', "#A0D995"),
+            'IDLE': ('⏸️', 'Machine Idle', "#FFD95A"),
+            'ERROR': ('⚠️', 'Machine Error - Check PLC', "#D9534F"),
+            'STOPPED': ('⏹️', 'Machine Stopped', "#FF8C42")
         }
-        
+
         if self.system_status and status in status_icons:
-            icon, tooltip = status_icons[status]
+            icon, tooltip, color = status_icons[status]
             self.system_status.setText(icon)
             self.system_status.setToolTip(tooltip)
-        
+            self.system_status.setStyleSheet(f"font-size: 16px; color: {color};")
+
+        # Update Start/Stop button states based on actual machine status
+        if hasattr(self, 'sidebar_buttons'):
+            if status == 'RUNNING':
+                self.sidebar_buttons["Start"].setEnabled(False)
+                self.sidebar_buttons["Stop"].setEnabled(True)
+            elif status == 'STOPPED' or status == 'IDLE':
+                self.sidebar_buttons["Start"].setEnabled(True)
+                self.sidebar_buttons["Stop"].setEnabled(False)
+
         if status == 'ERROR':
             self.update_status_message("Machine in ERROR state - Check PLC", "error")
     
@@ -407,6 +417,10 @@ if __name__ == "__main__":
     app.setFont(QFont("Segoe UI", 9))
     
     window = MainWindow()
-    window.showMaximized()
+    # Optimize for 13-inch screen (1280x720 resolution)
+    # Set window size to 1280x750 for better visibility with taskbar
+    window.resize(1280, 750)
+    window.setMinimumSize(1024, 600)  # Minimum size to prevent UI collapse
+    window.show()
     
     sys.exit(app.exec())
