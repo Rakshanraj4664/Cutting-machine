@@ -71,10 +71,10 @@ class NewProductionDialog(QDialog):
             "Conveyor Offset [mm]"
         ]
         
-        # Create form fields
+        # Create form fields - FIXED: Added black text color to labels
         for i, field in enumerate(fields):
             label = QLabel(f"{field}:")
-            label.setStyleSheet(PRODUCTION_FORM_LABEL_STYLE)
+            label.setStyleSheet("color: black; font-weight: bold; font-size: 12px;")  # Changed to black
             
             if field == "Description":
                 # Use QTextEdit for description (multi-line)
@@ -144,14 +144,30 @@ class SelectProductionDialog(QDialog):
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(15)
         
-        # Title
+        # Title - FIXED: Changed to black text
         title = QLabel("Available Production Files:")
-        title.setStyleSheet(PRODUCTION_FORM_LABEL_STYLE)
+        title.setStyleSheet("color: black; font-weight: bold; font-size: 14px;")
         layout.addWidget(title)
         
-        # File list
+        # File list - FIXED: Set text color to black
         self.file_list = QListWidget()
-        self.file_list.setStyleSheet(PRODUCTION_FORM_INPUT_STYLE)
+        self.file_list.setStyleSheet("""
+            QListWidget {
+                background-color: white;
+                color: black;
+                border: 1px solid #CCCCCC;
+                border-radius: 4px;
+                padding: 5px;
+            }
+            QListWidget::item {
+                padding: 5px;
+                color: black;
+            }
+            QListWidget::item:selected {
+                background-color: #1B2A49;
+                color: white;
+            }
+        """)
         self.populate_file_list()
         layout.addWidget(self.file_list)
         
@@ -223,15 +239,23 @@ class RenameProductionDialog(QDialog):
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(15)
         
-        # Label
+        # Label - FIXED: Changed to black text
         label = QLabel("New File Name:")
-        label.setStyleSheet(PRODUCTION_FORM_LABEL_STYLE)
+        label.setStyleSheet("color: black; font-weight: bold; font-size: 12px;")
         layout.addWidget(label)
         
-        # Input
+        # Input - FIXED: Set text color to black
         self.name_input = QLineEdit()
         self.name_input.setText(current_name)
-        self.name_input.setStyleSheet(PRODUCTION_FORM_INPUT_STYLE)
+        self.name_input.setStyleSheet("""
+            QLineEdit {
+                background-color: white;
+                color: black;
+                border: 1px solid #CCCCCC;
+                border-radius: 4px;
+                padding: 5px;
+            }
+        """)
         self.name_input.setFixedHeight(40)
         self.name_input.selectAll()
         layout.addWidget(self.name_input)
@@ -304,12 +328,12 @@ class ProductionPage(QWidget):
         input_layout.setSpacing(20)
 
         workorder_label = QLabel("Work Order ID:")
-        workorder_label.setStyleSheet(PRODUCTION_LABEL_STYLE)
+        workorder_label.setStyleSheet("color: black; font-weight: bold;")  # FIXED: Changed to black
         self.workorder_input = QLineEdit()
         self.workorder_input.setStyleSheet(PRODUCTION_INPUT_BOX_STYLE)
 
         batch_label = QLabel("Batch ID:")
-        batch_label.setStyleSheet(PRODUCTION_LABEL_STYLE)
+        batch_label.setStyleSheet("color: black; font-weight: bold;")  # FIXED: Changed to black
         self.batch_input = QLineEdit()
         self.batch_input.setStyleSheet(PRODUCTION_INPUT_BOX_STYLE)
 
@@ -340,6 +364,7 @@ class ProductionPage(QWidget):
         left_layout.setColumnStretch(1, 1)
 
         # Store left column inputs
+        # FIXED: _add_row now uses black text
         self.target_prod_input = self._add_row(left_layout, 0, "Target Prod :")
         self.style_input = self._add_row(left_layout, 1, "Style :")
         self.size_input = self._add_row(left_layout, 2, "Size :")
@@ -360,6 +385,7 @@ class ProductionPage(QWidget):
         right_layout.setVerticalSpacing(10)
 
         # Store right column inputs
+        # FIXED: _add_right_row now uses black text
         self.fabric_id_input = self._add_right_row(right_layout, 0, "ID :")
         self.color_input = self._add_right_row(right_layout, 1, "Color :")
         self.fabric_description_input = self._add_right_row(right_layout, 2, "Description :", height=60)
@@ -392,11 +418,19 @@ class ProductionPage(QWidget):
         file_layout.setSpacing(5)
 
         file_label = QLabel("File:")
-        file_label.setStyleSheet(PRODUCTION_FORM_LABEL_STYLE)
+        file_label.setStyleSheet("color: black; font-weight: bold; font-size: 12px;")  # FIXED: Changed to black
 
         self.file_input = QLineEdit()
         self.file_input.setReadOnly(True)
-        self.file_input.setStyleSheet(PRODUCTION_FORM_INPUT_STYLE)
+        self.file_input.setStyleSheet("""
+            QLineEdit {
+                background-color: #F0F0F0;
+                color: black;
+                border: 1px solid #CCCCCC;
+                border-radius: 4px;
+                padding: 5px;
+            }
+        """)
         self.file_input.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Fixed)
 
         file_layout.addWidget(file_label)
@@ -444,9 +478,17 @@ class ProductionPage(QWidget):
         description_layout = QHBoxLayout(description_frame)
         description_layout.setContentsMargins(0, 0, 0, 0)
         description_label = QLabel("Description:")
-        description_label.setStyleSheet(PRODUCTION_FORM_LABEL_STYLE)
+        description_label.setStyleSheet("color: black; font-weight: bold; font-size: 12px;")  # FIXED: Changed to black
         self.cutting_file_description_input = QLineEdit()
-        self.cutting_file_description_input.setStyleSheet(PRODUCTION_FORM_INPUT_STYLE)
+        self.cutting_file_description_input.setStyleSheet("""
+            QLineEdit {
+                background-color: white;
+                color: black;
+                border: 1px solid #CCCCCC;
+                border-radius: 4px;
+                padding: 5px;
+            }
+        """)
         self.cutting_file_description_input.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Fixed)
 
         description_layout.addWidget(description_label)
@@ -486,9 +528,17 @@ class ProductionPage(QWidget):
     def _add_row(self, layout, row, label_text):
         """Add a single input row and return the input widget."""
         lbl = QLabel(label_text)
-        lbl.setStyleSheet(PRODUCTION_FORM_LABEL_STYLE)
+        lbl.setStyleSheet("color: black; font-weight: bold; font-size: 12px;")  # FIXED: Changed to black
         box = QLineEdit()
-        box.setStyleSheet(PRODUCTION_FORM_INPUT_STYLE)
+        box.setStyleSheet("""
+            QLineEdit {
+                background-color: white;
+                color: black;
+                border: 1px solid #CCCCCC;
+                border-radius: 4px;
+                padding: 5px;
+            }
+        """)
         layout.addWidget(lbl, row, 0)
         layout.addWidget(box, row, 1)
         return box
@@ -496,9 +546,17 @@ class ProductionPage(QWidget):
     def _add_right_row(self, layout, row, label_text, height=None):
         """Add a single input row to right column and return the input widget."""
         lbl = QLabel(label_text)
-        lbl.setStyleSheet(PRODUCTION_FORM_LABEL_STYLE)
+        lbl.setStyleSheet("color: black; font-weight: bold; font-size: 12px;")  # FIXED: Changed to black
         box = QLineEdit()
-        box.setStyleSheet(PRODUCTION_FORM_INPUT_STYLE)
+        box.setStyleSheet("""
+            QLineEdit {
+                background-color: white;
+                color: black;
+                border: 1px solid #CCCCCC;
+                border-radius: 4px;
+                padding: 5px;
+            }
+        """)
         if height:
             box.setFixedHeight(height)
         layout.addWidget(lbl, row, 0)
