@@ -437,23 +437,22 @@ class HomePage(QWidget):
         # -------------------------
         # Add space between fourth and fifth row
         # -------------------------
-        main_layout.addSpacing(15)
+        main_layout.addSpacing(10)
 
         # -------------------------
         # 5th Row: Black border box with reset button and icons
         # -------------------------
         black_border_box = QFrame()
         black_border_box.setFixedWidth(500)
-        black_border_box.setFixedHeight(70)
         black_border_box.setStyleSheet(BLACK_BORDER_BOX_STYLE)
 
         inner_layout = QHBoxLayout(black_border_box)
-        inner_layout.setContentsMargins(20, 15, 20, 15)
+        inner_layout.setContentsMargins(15, 5, 15, 5)
         inner_layout.setSpacing(0)
 
         # Left: Reset Tubular button
         reset_button = QPushButton("Reset Tubular")
-        reset_button.setFixedSize(150, 35)
+        reset_button.setFixedSize(150, 28)
         reset_button.setStyleSheet(HOME_BUTTON_STYLE)
         inner_layout.addWidget(reset_button, alignment=Qt.AlignmentFlag.AlignLeft)
 
@@ -464,7 +463,7 @@ class HomePage(QWidget):
         icon_layout.setSpacing(0)
         for i in range(4):
             icon_btn = QPushButton()
-            icon_btn.setFixedSize(50, 50)
+            icon_btn.setFixedSize(40, 40)
             icon_btn.setStyleSheet(STYLES_MINIICON_STYLE)
             icon_layout.addWidget(icon_btn)
 
