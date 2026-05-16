@@ -13,7 +13,7 @@ GREEN_TICK = "green"       # Tick mark color
 # Sidebar Button Colors
 # -------------------------
 SIDEBAR_BUTTON_COLORS = {
-    "Reset": BRIGHT_ORANGE,
+    "Reset": BRIGHT_ORANGE,      # Changed from "Rest" to "Reset"
     "Start": "#A0D995",
     "Stop": "#D9534F",
     "Restore": LIGHT_YELLOW,
